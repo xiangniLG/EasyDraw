@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>PhyDraw · DSE 物理绘图素材库</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header id="tb">
+  <b class="logo">PhyDraw</b>
+  <button id="bNew" title="新建">新建</button>
+  <button id="bOpen" title="打开 .json 工程">打开</button>
+  <button id="bSave" title="保存工程 (Ctrl+S)">保存</button>
+  <button id="bDemo" title="载入示例">示例</button>
+  <button id="bImg" title="导入图片（也可以直接 Ctrl+V 粘贴截图，或把图片文件拖进画布）">导入图片</button>
+  <i class="sep"></i>
+  <button id="bUndo" title="撤销 (Ctrl+Z)">↶</button>
+  <button id="bRedo" title="重做 (Ctrl+Y)">↷</button>
+  <i class="sep"></i>
+  <button id="bGrid" title="显示/隐藏网格">网格</button>
+  <button id="bSnap" title="吸附网格（拖动时按 Alt 临时关闭）">吸附</button>
+  <button id="bBW" title="黑白预览（模拟试卷打印效果）">黑白预览</button>
+  <i class="sep"></i>
+  <label class="tbsize" title="画布尺寸（也可拖动画布右下角）">画布 <input id="cvW" type="number" step="10"> × <input id="cvH" type="number" step="10"></label>
+  <button id="bFit" title="把画布缩放到刚好包住所有对象">适应内容</button>
+  <button id="bDoc" title="打开画布设置（或点击画布空白处）">画布设置</button>
+  <i class="sep"></i>
+  <button id="bZout">−</button><button id="zoomLbl" title="点击恢复 100%">100%</button><button id="bZin">+</button>
+  <span class="grow"></span>
+  <button id="bCopy" class="pri" title="复制为高清 PNG，可直接粘贴到 Word">复制 PNG</button>
+  <button id="bPNG">导出 PNG</button>
+  <button id="bSVG">导出 SVG</button>
+  <input type="file" id="fileIn" accept=".json" hidden>
+  <input type="file" id="imgIn" accept="image/*" multiple hidden>
+</header>
+<main>
+  <aside id="left">
+    <input id="search" type="search" placeholder="搜索素材…">
+    <div id="palette"></div>
+    <div id="ver"></div>
+  </aside>
+  <section id="wrap">
+    <svg id="cv" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <defs>
+        <pattern id="gMinor" patternUnits="userSpaceOnUse" width="10" height="10"><path d="M10,0H0V10" fill="none" stroke="#e6ebf2" stroke-width="0.6"/></pattern>
+        <pattern id="gMajor" patternUnits="userSpaceOnUse" width="50" height="50"><rect width="100%" height="100%" fill="url(#gMinor)"/><path d="M50,0H0V50" fill="none" stroke="#cdd6e2" stroke-width="0.8"/></pattern>
+        <pattern id="checker" patternUnits="userSpaceOnUse" width="16" height="16"><rect width="16" height="16" fill="#fff"/><path d="M0,0h8v8H0zM8,8h8v8H8z" fill="#eee"/></pattern>
+      </defs>
+      <rect id="bgRect" x="0" y="0"/>
+      <rect id="gridRect" x="0" y="0" fill="url(#gMajor)" pointer-events="none"/>
+      <g id="scene"></g>
+      <g id="overlay"></g>
+    </svg>
+  </section>
+  <div id="splitter" title="拖动调整面板宽度"></div>
+  <aside id="props"></aside>
+</main>
+<div id="toast"></div>
+
+<template id="helpTpl">
+  <details class="help" open>
+    <summary>使用提示</summary>
+    <ul>
+      <li>左侧点击素材添加到画布中央，或直接拖入画布。</li>
+      <li>拖动对象移动；蓝色圆点为控制点（端点、尺寸、关节、顶点）。</li>
+      <li><b>多选</b>：按住 Ctrl 或 Shift 点击加选/减选；在空白处按住拖动可框选（完全框住的对象才会选中）。Ctrl+A 全选。</li>
+      <li><b>组合</b>：选中多个后按 Ctrl+G（或面板「组合」）；Ctrl+Shift+G 取消组合。组合后整体移动、旋转、缩放、翻转，并可统一线条色/线宽/填充色。</li>
+      <li><b>图层</b>：Ctrl+] 上移一层，Ctrl+[ 下移一层，加 Shift 为置顶/置底。</li>
+      <li>旋转：拖动选中框上方的圆形手柄（多选时绕整体中心转）；Shift 每 15°；双击手柄归零；Alt+←/→ 每次 15°。</li>
+      <li>文字语法：<code>x_1</code> <code>v^2</code> <code>x_1^2</code> <code>F_{net}</code> <code>\theta</code> <code>\rm{m s^{-1}}</code>（正体）<code>\bf{F}</code> <code>\vec{F}</code> <code>\sqrt{2gh}</code></li>
+      <li>分式：<code>\frac{1}{2}mv^2</code> 或 <code>{1}/{2}mv^2</code>；核素：<code>\nuc{235}{92}{U}</code></li>
+      <li>函数语法：<code>2x+1</code>、<code>x^2</code>、<code>sin(x)</code>、<code>exp(-x/2)</code>、<code>sqrt(x)</code>、<code>ln(x)</code>、<code>log(x)</code>(以10为底)、<code>PI</code>、<code>x&lt;3 ? 1 : 0</code>；写错会在图表上方显示红字提示。</li>
+      <li>图片：「导入图片」，或 Ctrl+V 粘贴截图、把图片文件拖进画布。</li>
+      <li><b>插入元件</b>：把电阻、灯泡等两端元件拖到导线上松开，会自动串联进去。</li>
+      <li><b>电路连线</b>：选中导线会显示元件端口(橙色圈)，把导线两端拖到端口上即连接；移动元件时导线跟着走；拖中间蓝点调整转折。</li>
+      <li>绑定：抛体轨迹「绑定物体」、航天器「绕行天体」，拖动目标时跟着走。</li>
+      <li>快捷键：Del 删除 · Ctrl+D 复制 · Ctrl+C/V · 方向键微调(Shift×10) · Ctrl+滚轮缩放 · Esc 取消选择 · 拖动时按 Alt 反转吸附</li>
+      <li>工程自动保存在浏览器；「保存」可导出 .json 以便备份/共享。</li>
+    </ul>
+  </details>
+</template>
+
+<!-- 核心 -->
+<script src="js/core.js"></script>
+<!-- 素材库：每一章一个文件，按需添加 -->
+<script src="lib/basic.js"></script>
+<script src="lib/graph.js"></script>
+<script src="lib/solid3d.js"></script>
+<script src="lib/lab.js"></script>
+<script src="lib/heat.js"></script>
+<script src="lib/mechanics.js"></script>
+<script src="lib/optics.js"></script>
+<script src="lib/waves.js"></script>
+<script src="lib/circuit.js"></script>
+<script src="lib/electro.js"></script>
+<script src="lib/induction.js"></script>
+<script src="lib/nuclear.js"></script>
+<!-- 以后：<script src="lib/mechanics.js"></script> … -->
+<script src="js/app.js"></script>
+</body>
+</html>
