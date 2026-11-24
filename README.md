@@ -21,7 +21,10 @@ phydraw/
     ├── circuit.js    电与磁：电路、家居电路
     ├── electro.js    电与磁：静电学、磁场、磁场中受到的力
     ├── induction.js  电与磁：电磁感应、变压器
-    └── nuclear.js    辐射与核能
+    ├── nuclear.js    辐射与核能
+    ├── atomic.js     选修 · 原子世界
+    ├── energy.js     选修 · 能量和能源的使用(家居用电)
+    └── energy2.js    选修 · 能量和能源的使用(照明、建筑与运输、能源)
 ```
 
 ## 新增一章素材

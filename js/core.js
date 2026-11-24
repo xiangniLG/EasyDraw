@@ -29,7 +29,7 @@
      支持：+ - * / ^(右结合，-x^2 = -(x^2))  隐式乘法 2x、3(x+1)  比较 < > <= >= == !=  三元 a ? b : c
      函数：sin cos tan asin acos atan sinh cosh tanh exp ln(自然对数) log(=log10) log2 sqrt cbrt abs floor ceil round sign min max pow hypot
      常量：PI(π) E(e)；变量 x（或 t） */
-  PD.parseExpr = (src) => {
+  PD.parseExpr = (src, opts) => {
     const s = String(src).replace(/π/g, 'PI').replace(/×/g, '*').replace(/[−–]/g, '-').replace(/÷/g, '/');
     const toks = []; let i = 0;
     while (i < s.length) {
@@ -45,6 +45,7 @@
     const FN = { sin: Math.sin, cos: Math.cos, tan: Math.tan, asin: Math.asin, acos: Math.acos, atan: Math.atan, atan2: Math.atan2, sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
       exp: Math.exp, ln: Math.log, log: Math.log10, log10: Math.log10, log2: Math.log2, sqrt: Math.sqrt, cbrt: Math.cbrt, abs: Math.abs, floor: Math.floor, ceil: Math.ceil, round: Math.round,
       sign: Math.sign, min: Math.min, max: Math.max, pow: Math.pow, hypot: Math.hypot };
+    if (opts && opts.deg) { const r = Math.PI / 180; Object.assign(FN, { sin: (x) => Math.sin(x * r), cos: (x) => Math.cos(x * r), tan: (x) => Math.tan(x * r), asin: (x) => Math.asin(x) / r, acos: (x) => Math.acos(x) / r, atan: (x) => Math.atan(x) / r }); }
     const CONST = { PI: Math.PI, pi: Math.PI, E: Math.E, e: Math.E };
     const BP = { '?': 1, '==': 4, '!=': 4, '<': 5, '>': 5, '<=': 5, '>=': 5, '+': 6, '-': 6, '*': 7, '/': 7, '%': 7, '^': 9 };
     let k = 0;
@@ -84,8 +85,8 @@
     const root = expr(0); if (k < toks.length) throw new Error('多余的「' + toks[k].v + '」');
     return root;
   };
-  PD.compile = (ex) => { if (ex == null || String(ex).trim() === '') return null; try { const r = PD.parseExpr(ex); return (x) => r({ x }); } catch (e) { return null; } };
-  PD.exprError = (ex) => { try { PD.parseExpr(ex); return ''; } catch (e) { return e.message; } };
+  PD.compile = (ex, opts) => { if (ex == null || String(ex).trim() === '') return null; try { const r = PD.parseExpr(ex, opts); return (x) => r({ x }); } catch (e) { return null; } };
+  PD.exprError = (ex, opts) => { try { PD.parseExpr(ex, opts); return ''; } catch (e) { return e.message; } };
 
 
   /* ---------- 字体（含 Mac / Linux 回退） ---------- */
@@ -207,7 +208,10 @@
     infty: '∞', approx: '≈', neq: '≠', le: '≤', ge: '≥', propto: '∝', parallel: '∥', perp: '⊥', odot: '⊙', otimes: '⊗',
     partial: '∂', nabla: '∇', hbar: 'ħ', prime: '′', minus: '−', angle: '∠', sim: '~', quad: '\u2003', qquad: '\u2003\u2003',
     rightleftharpoons: '⇌', Rightarrow: '⇒', therefore: '∴', because: '∵', ohm: 'Ω', micro: 'μ', AA: 'Å',
+    triangle: '△', cong: '≅', in: '∈', notin: '∉', cup: '∪', cap: '∩', subset: '⊂', subseteq: '⊆', emptyset: '∅', varnothing: '∅', leq: '≤', geq: '≥', ne: '≠', equiv: '≡',
+    Leftrightarrow: '⇔', Leftarrow: '⇐', div: '÷', mp: '∓', square: '□', ldots: '…', cdots: '⋯', sum: 'Σ', prod: 'Π', mid: '|', lt: '<', gt: '>', star: '★', bigcirc: '○',
   };
+  const MATHFN = { sin: 1, cos: 1, tan: 1, sec: 1, csc: 1, cot: 1, arcsin: 1, arccos: 1, arctan: 1, log: 1, ln: 1, lg: 1, exp: 1, max: 1, min: 1, lim: 1, sinh: 1, cosh: 1, tanh: 1, det: 1, gcd: 1 };
   const RM = { rm: 1, text: 1, mathrm: 1, textrm: 1 }, BF = { bf: 1, mathbf: 1, textbf: 1 }, IT = { it: 1, mathit: 1, textit: 1 };
   function parse(src, st, scr) {
     const out = []; let i = 0;
@@ -242,6 +246,7 @@
         if (BF[n]) { out.push({ k: 'g', c: parse(arg(), { it: false, bf: true }, scr) }); continue; }
         if (IT[n]) { out.push({ k: 'g', c: parse(arg(), { it: true, bf: st.bf }, scr) }); continue; }
         if (n === 'frac' || n === 'dfrac' || n === 'tfrac') { const A = arg(), B = arg(); out.push({ k: 'frac', n: parse(A, st, scr), d: parse(B, st, scr), force: n === 'dfrac' ? 'stack' : n === 'tfrac' ? 'inline' : null }); continue; }
+        if (MATHFN[n]) { add(n, { it: false, bf: st.bf }); continue; }
         if (n === 'Roman' || n === 'roman') { const r = PD.roman(parseInt(arg(), 10)); add(n === 'roman' ? r.toLowerCase() : r, { it: false, bf: st.bf }); continue; }
         if (n === 'nuc') { const A = arg(), Z = arg(), X = arg(); out.push({ k: 'sc', pre: true, sup: parse(A, { it: false, bf: st.bf }, true), sub: parse(Z, { it: false, bf: st.bf }, true) }); out.push({ k: 'g', c: parse(X, { it: false, bf: st.bf }, scr) }); continue; }
         if (n === 'vec' || n === 'bar' || n === 'overline' || n === 'sqrt') { out.push({ k: 'acc', a: n, c: parse(arg(), st, scr) }); continue; }
