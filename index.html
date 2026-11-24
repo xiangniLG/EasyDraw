@@ -2,13 +2,13 @@
 <html lang="zh">
 <head>
 <meta charset="utf-8">
-<title>PhyDraw · DSE 物理绘图素材库</title>
+<title>EasyDraw · DSE 数学绘图素材库</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 <header id="tb">
-  <b class="logo">PhyDraw</b>
+  <b class="logo">EasyDraw <small>数学</small></b>
   <button id="bNew" title="新建">新建</button>
   <button id="bOpen" title="打开 .json 工程">打开</button>
   <button id="bSave" title="保存工程 (Ctrl+S)">保存</button>
@@ -62,41 +62,27 @@
   <details class="help" open>
     <summary>使用提示</summary>
     <ul>
-      <li>左侧点击素材添加到画布中央，或直接拖入画布。</li>
-      <li>拖动对象移动；蓝色圆点为控制点（端点、尺寸、关节、顶点）。</li>
-      <li><b>多选</b>：按住 Ctrl 或 Shift 点击加选/减选；在空白处按住拖动可框选（完全框住的对象才会选中）。Ctrl+A 全选。</li>
-      <li><b>组合</b>：选中多个后按 Ctrl+G（或面板「组合」）；Ctrl+Shift+G 取消组合。组合后整体移动、旋转、缩放、翻转，并可统一线条色/线宽/填充色。</li>
-      <li><b>图层</b>：Ctrl+] 上移一层，Ctrl+[ 下移一层，加 Shift 为置顶/置底。</li>
-      <li>旋转：拖动选中框上方的圆形手柄（多选时绕整体中心转）；Shift 每 15°；双击手柄归零；Alt+←/→ 每次 15°。</li>
-      <li>文字语法：<code>x_1</code> <code>v^2</code> <code>x_1^2</code> <code>F_{net}</code> <code>\theta</code> <code>\rm{m s^{-1}}</code>（正体）<code>\bf{F}</code> <code>\vec{F}</code> <code>\sqrt{2gh}</code></li>
-      <li>分式：<code>\frac{1}{2}mv^2</code> 或 <code>{1}/{2}mv^2</code>；核素：<code>\nuc{235}{92}{U}</code></li>
-      <li>函数语法：<code>2x+1</code>、<code>x^2</code>、<code>sin(x)</code>、<code>exp(-x/2)</code>、<code>sqrt(x)</code>、<code>ln(x)</code>、<code>log(x)</code>(以10为底)、<code>PI</code>、<code>x&lt;3 ? 1 : 0</code>；写错会在图表上方显示红字提示。</li>
-      <li>图片：「导入图片」，或 Ctrl+V 粘贴截图、把图片文件拖进画布。</li>
-      <li><b>插入元件</b>：把电阻、灯泡等两端元件拖到导线上松开，会自动串联进去。</li>
-      <li><b>电路连线</b>：选中导线会显示元件端口(橙色圈)，把导线两端拖到端口上即连接；移动元件时导线跟着走；拖中间蓝点调整转折。</li>
-      <li>绑定：抛体轨迹「绑定物体」、航天器「绕行天体」，拖动目标时跟着走。</li>
+      <li>左侧点击素材添加到画布中央，或直接拖入画布；蓝色圆点为控制点（可拖动顶点）。</li>
+      <li><b>多选</b>：Ctrl/Shift 点击加选；空白处拖动框选；Ctrl+A 全选。<b>组合</b>：Ctrl+G，取消 Ctrl+Shift+G。<b>图层</b>：Ctrl+] / Ctrl+[。</li>
+      <li><b>平面几何</b>：在「作图」框里一行一条，如 <code>A = 0, 100</code>、<code>M = mid A B</code>、<code>poly A B C</code>、<code>angle A B C x</code>、<code>tick A B 2</code>。输入框留空可看到全部指令说明。</li>
+      <li><b>立体几何</b>：顶点自动标名；附加作图如 <code>seg A G</code>、<code>angle G A C \theta</code>、<code>poly P Q C A gray</code>（截面）。</li>
+      <li><b>图表函数</b>：<code>2x+1</code>、<code>x^2</code>、<code>sin(x)</code>、<code>log(x)</code>(以10为底)、<code>ln(x)</code>、<code>2^x</code>；三角函数可选「按度」。不等式区域：<code>y &lt;= -x+5</code>。写错会显示红字。</li>
+      <li>文字语法：<code>x_1</code> <code>x^2</code> <code>\frac{a}{b}</code> <code>\sqrt{x}</code> <code>\sin \theta</code> <code>\angle ABC</code> <code>\triangle</code> <code>\cong</code> <code>\sim</code> <code>\parallel</code> <code>\perp</code> <code>\cup</code> <code>\cap</code> <code>\le</code> <code>\ge</code> <code>\overline{AB}</code> <code>\Roman{3}</code></li>
+      <li>旋转：选中框上方的圆形手柄；Shift 每 15°；双击归零。图片：Ctrl+V 粘贴截图。</li>
       <li>快捷键：Del 删除 · Ctrl+D 复制 · Ctrl+C/V · 方向键微调(Shift×10) · Ctrl+滚轮缩放 · Esc 取消选择 · 拖动时按 Alt 反转吸附</li>
-      <li>工程自动保存在浏览器；「保存」可导出 .json 以便备份/共享。</li>
     </ul>
   </details>
 </template>
 
 <!-- 核心 -->
 <script src="js/core.js"></script>
-<!-- 素材库：每一章一个文件，按需添加 -->
+<script>PD.edition = 'math';</script>
+<!-- 素材库（数学版） -->
 <script src="lib/basic.js"></script>
 <script src="lib/graph.js"></script>
 <script src="lib/solid3d.js"></script>
-<script src="lib/lab.js"></script>
-<script src="lib/heat.js"></script>
-<script src="lib/mechanics.js"></script>
-<script src="lib/optics.js"></script>
-<script src="lib/waves.js"></script>
-<script src="lib/circuit.js"></script>
-<script src="lib/electro.js"></script>
-<script src="lib/induction.js"></script>
-<script src="lib/nuclear.js"></script>
-<!-- 以后：<script src="lib/mechanics.js"></script> … -->
+<script src="lib/mgeo.js"></script>
+<script src="lib/mstat.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

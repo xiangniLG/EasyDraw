@@ -4,7 +4,7 @@
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => [...document.querySelectorAll(s)];
   const f = PD.f;
-  const LS = 'phydraw.doc.v1', LSC = 'phydraw.cats';
+  const ED = PD.edition ? 'easydraw.' + PD.edition : 'phydraw', LS = ED + '.doc.v1', LSC = ED + '.cats', LSW = ED + '.pw';
   const IS_MAC = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent || '');
   const K = { mod: IS_MAC ? '⌘' : 'Ctrl', alt: IS_MAC ? '⌥Option' : 'Alt' };
   const S = { doc: null, sel: [], zoom: 1, hist: [], hi: -1, drag: null, clip: null, pp: 0 };
@@ -507,10 +507,10 @@
   }
   function initSplitter() {
     const sp = $('#splitter'), root = document.documentElement;
-    const saved = +localStorage.getItem('phydraw.pw'); if (saved) root.style.setProperty('--pw', saved + 'px');
+    const saved = +localStorage.getItem(LSW); if (saved) root.style.setProperty('--pw', saved + 'px');
     sp.addEventListener('pointerdown', (e) => {
       sp.setPointerCapture(e.pointerId); sp.classList.add('on');
-      const mv = (ev) => { const w = Math.max(240, Math.min(640, window.innerWidth - ev.clientX)); root.style.setProperty('--pw', w + 'px'); localStorage.setItem('phydraw.pw', w); };
+      const mv = (ev) => { const w = Math.max(240, Math.min(640, window.innerWidth - ev.clientX)); root.style.setProperty('--pw', w + 'px'); localStorage.setItem(LSW, w); };
       const up = () => { sp.classList.remove('on'); sp.removeEventListener('pointermove', mv); sp.removeEventListener('pointerup', up); };
       sp.addEventListener('pointermove', mv); sp.addEventListener('pointerup', up);
     });
@@ -715,6 +715,14 @@
       const i = PD.palette.findIndex((p) => p.name === name); if (i < 0) return;
       const o = PD.makeObj(PD.palette[i], d.nid++); Object.assign(o, { x, y }, extra || {}); d.objs.push(o);
     };
+    if (PD.edition === 'math') {
+      add('二次函数(顶点、对称轴)', 60, 70);
+      add('圆心角与圆周角', 600, 170);
+      add('长方体(对角线与底面的夹角)', 560, 470);
+      add('二次公式', 210, 470);
+      add('数线(复合不等式)', 70, 580);
+      return d;
+    }
     add('v-t 图(面积)', 60, 70);
     add('长方体(光影)', 620, 150);
     add('坐标系+点投影', 560, 470);

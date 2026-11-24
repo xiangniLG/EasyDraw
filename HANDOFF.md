@@ -6,6 +6,62 @@
 
 ---
 
+## 0. 数学版（`feature-math` 分支）· 先读这一节
+
+> 版本：EasyDraw 数学版 v0.9 · 2026-11-23
+> 仓库 `github.com/xiangniLG/EasyDraw`：`feature-physics`（物理）、`feature-math`（本分支）、`feature-chem`（化学，未开始）、`main`。三个学科共用同一套编辑器和核心（`js/app.js`、`js/core.js`、`css/`、`lib/basic.js`、`lib/graph.js`、`lib/solid3d.js`），**各分支只是素材库文件不同**。下文第 1 节起是物理版写下的通用文档，架构、契约、美学规范全部适用。
+
+### 0.1 与物理版的差异
+- **删除**：物理素材库 `lab / heat / mechanics / optics / waves / circuit / electro / induction / nuclear.js`（在 `feature-physics` 分支里仍然完整保留）。
+- **新增**：`lib/mgeo.js`（平面几何、立体几何、三角学、数线）和 `lib/mstat.js`（统计、概率、表格、坐标几何和函数图像预设、常用公式）。`mstat.js` 依赖 `mgeo.js` 挂在 `PD.mlab` 上的辅助函数。
+- **`index.html`**：加载顺序 `core → (PD.edition = 'math') → basic → graph → solid3d → mgeo → mstat → app`；标题改为 EasyDraw · 数学。
+- **`PD.edition`**：`app.js` 用它区分 localStorage 键（`easydraw.math.doc.v1` / `.cats` / `.pw`）。在同一个浏览器里打开物理版和数学版，工程不会互相覆盖。没设置 edition 时仍用旧键 `phydraw.*`，物理版不受影响。示例工程（`demoDoc`）也按 edition 选择。
+- `basic.js` 去掉了「核反应方程」预设，`solid3d.js` 的「三棱镜」改名「三棱柱(横放)」，`graph.js` 的物理预设（v-t 图等）已删除。
+
+### 0.2 共用文件的升级（合并回其他分支时注意）
+这些改动是向下兼容的，以后可以合并到 `feature-physics`、`feature-chem`：
+- `core.js`
+  - `PD.parseExpr(src, {deg})`、`PD.compile(ex, {deg})`：`deg` 为真时 sin、cos、tan 按「度」计算，asin 等返回度。
+  - TeX：`\sin \cos \tan \log \ln \lim …` 输出为正体函数名（`MATHFN` 表）。新增符号 `\triangle \cong \in \notin \cup \cap \subset \subseteq \emptyset \leq \geq \ne \equiv \Leftrightarrow \div \mp \square \ldots \cdots \sum \prod \mid`。
+- `graph.js`（坐标图表）新增字段：
+  - `deg`（三角函数按度）、`xsuf/ysuf`（刻度后缀，如 °）
+  - `fills`（两曲线间面积）、`ineq`（不等式，画同时满足的区域，严格不等式边界自动画虚线；用嵌套 clipPath 求交集）
+  - `vlines`（直线 x = a / y = b）、`segs`、`circles`、`pts`（带标签的点，标签里可以有逗号，最后一项是方位）
+  - `roots`、`inter`、`ilab`：数值求根，扫描变号后二分，自动标出 x 截距和曲线交点
+  - 函数行第 6 项是标签、第 7 项是标签的 x 位置
+
+### 0.3 平面几何作图语言（`geom`）
+一个文本框里每行一条。点用**数学坐标**（y 向上，单位 px），渲染时再翻转。分两类：
+- **定义点**：`A = 0, 0` · `A = @ 30[, r]`（在以 O 为圆心的圆上）· `mid A B` · `on A B t` · `foot C A B` · `int A B C D` · `polar A 角 距离` · `rot A B 角` · `refl A B C` · `incenter / circumcenter / centroid / orthocenter A B C` · `T, U = tan P`（切点）。`O` 默认在原点。
+- **作图指令**：`poly`、`seg`（可带 fill/gray/hatch、dash/dot/bold、#颜色）· `line` · `ray` · `circle` · `circ O A|r` · `incircle` · `circumcircle` · `angle A B C [标签] [弧数]` · `right` · `tick A B n` · `par A B n` · `len A B 标签` · `dot` · `hide` · `lab A 方位 ["文字"]`。
+
+其他规则：
+- **可拖动**：`getHandles` 只把「坐标点」和「@ 圆上点」做成控制点；`setHandle` 直接改写脚本里对应的那一行。
+- **出错提示**：只在编辑态把「第 n 行：原因」画成红字，导出的图里没有。
+- **点的标签**：自动放在远离参考点的一侧。画了圆时参考点是圆心，否则是所有点的重心。名称 `A1` 排成 A₁，`A'` 排成 A′。名称以 `_` 开头的点不标注。
+
+### 0.4 立体几何（`solid3`）
+- **立体种类**：cuboid、cube、pyramid、tetra、tprism、wedge、frustum。可见面、被遮挡的棱由 `PD.polyhedron` 处理，投影方式与 `solid3d.js` 相同。
+- **顶点命名**：默认按 HK 课本习惯，长方体下底 ABCD、上底 EFGH（E 在 A 正上方）；棱锥 VABCD；楔形 ABCD-EF（E 在 C 上方、F 在 D 上方）。
+- **附加作图**：可以定义 `mid / center / on / foot（点到平面的垂足）/ foot2（点到直线的垂足）` 和空间坐标点。角弧先在三维里取弧上的点再投影，所以透视下也准确。
+
+### 0.5 其他数学素材
+- **统计**：棒形图（复式、横向）、直方图 + 频数多边形、累积频数多边形或曲线（读 Q1、M、Q3、Pn）、框线图（原始数据会自动用「下半 / 上半的中位数」算四分位数）、茎叶图（可背对背）、圆形图、点图。
+- **概率**：
+  - 树形图：缩进两格表示下一层；分数概率会自动相乘并约分。
+  - 韦恩图：2 或 3 个集合，区域用 1/0 编码，涂色用 clip 加 mask 实现；区域文字自动放在离边界最远的点。
+  - 表格：用 `|` 分隔。
+- **三角学**：方位角（真方位、罗盘方位）、仰角、俯角（可标错角）、正弦/余弦定理三角形。
+- **数线**：支持 `x > 2`、`-1 <= x < 3`、`x <= -1 or x > 2`。
+
+### 0.6 已知问题（数学版）
+| 问题 | 说明 |
+|---|---|
+| 作图语言没有自动补全 | 输入框留空时，占位文字就是完整的指令说明 |
+| 树形图层数多（≥3）时概率标签较挤 | 可以加大「每层宽度 / 末端间距」 |
+| 平面几何的 `angle` 总是画较小的那个角 | 要画大于 180° 的角，请把两边的点交换顺序，或用 `arc` 类素材 |
+| 立体几何不能画曲面体的截面 | 圆柱、圆锥仍在通用的「3D 投影」里 |
+
 ## 1. 产品定位
 
 ### 1.1 这是什么
@@ -492,6 +548,7 @@ S = { doc, sel /*选中 id 或 null*/, zoom, hist /*JSON 快照栈，上限 200*
 ---
 
 ## 12. 更新记录
+- **数学版 v0.9**（2026-11-23，`feature-math`）：见第 0 节。
 - **v0.8**（2026-11-23）· 必修五册完成
   - 修复：衍射光栅实验默认不画光栅放大图；删除两个测声速组合素材；左侧素材栏多级目录不再横向溢出（3 列 `minmax(0,1fr)`，子目录只缩进标题）
   - 电路：电路类组合预设（串联、并联、多相开关、插座接线、电磁铁电路、感生电流实验、两个输电电路）插入为独立对象；**把两端元件拖到导线上自动串联进去**
